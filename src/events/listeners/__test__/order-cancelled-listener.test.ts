@@ -17,7 +17,7 @@ const setup = async () => {
   await order.save();
 
   const data: OrderCancelledEvent['data'] = {
-    id: new mongoose.Types.ObjectId().toHexString(),
+    id: order.id,
     version: 1,
     ticket: {
       id: 'alskdjf',
