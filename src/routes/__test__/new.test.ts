@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import { app } from '../../app';
 import { Order } from '../../models/order';
+import { Payment } from '../../models/payment';
 import { stripe } from '../../stripe';
 
 it('returns a 404 when purchasing an order that does not exist', async () => {
@@ -85,4 +86,40 @@ it('returns a 201 with valid inputs', async () => {
   );
 
   expect(stripeCharge!.amount).toEqual(price * 100);
+});
+
+it('returns a 201 with valid inputs', async () => {
+  const userId = new mongoose.Types.ObjectId().toHexString();
+  const price = Math.floor(Math.random() * 100000);
+  const order = Order.build({
+    id: new mongoose.Types.ObjectId().toHexString(),
+    userId,
+    version: 0,
+    price,
+    status: OrderStatus.Created,
+  });
+  await order.save();
+
+  await request(app)
+    .post('/api/payments')
+    .set('Cookie', global.signin(userId))
+    .send({
+      token: 'tok_visa',
+      orderId: order.id,
+    })
+    .expect(201);
+
+  const stripeCharges = await stripe.charges.list({ limit: 50 });
+  const stripeCharge = stripeCharges.data.find(
+    (charge) => charge.amount === price * 100
+  );
+
+  expect(stripeCharge!.amount).toEqual(price * 100);
+
+  const payment = await Payment.findOne({
+    stripeId: stripeCharge!.id,
+    orderId: order.id,
+  });
+
+  expect(payment).not.toBeNull();
 });
