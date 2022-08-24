@@ -8,7 +8,7 @@ import { app } from '../app';
 let mongo: any;
 
 declare global {
-  var signin: () => string[];
+  var signin: (id?: string) => string[];
 }
 
 jest.mock('../nats-wrapper');
@@ -39,13 +39,13 @@ afterAll(async () => {
   await mongoose.connection.close();
 });
 
-global.signin = () => {
+global.signin = (id?: string) => {
   // Build a JWT payload. { id, email }
-  const id = new mongoose.Types.ObjectId().toHexString();
+  const userId = id || new mongoose.Types.ObjectId().toHexString();
   const email = 'test@test.com';
 
   // Create the JWT!
-  const token = jwt.sign({ id, email }, process.env.JWT_KEY!);
+  const token = jwt.sign({ id: userId, email }, process.env.JWT_KEY!);
 
   // Build the session object
   const session = { jwt: token };
