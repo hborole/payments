@@ -12,6 +12,10 @@ declare global {
 }
 
 jest.mock('../nats-wrapper');
+jest.setTimeout(600000);
+
+process.env.STRIPE_SECRET_KEY =
+  'sk_test_51LaGzYLUCuKOBkeUJtqfCbxUqmyuGYRvx6AEc0wFXp4LmhzqhLQ86Yk0kMPj6wwiK4QeTbZlcMnbhrVSofMwKVfy00pjqdG4pq';
 
 beforeAll(async () => {
   process.env.JWT_KEY = 'asdfasdf';
